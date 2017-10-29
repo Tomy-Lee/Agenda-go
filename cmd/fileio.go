@@ -1,24 +1,53 @@
-package model
+package cmd
 
 import (
-    "cmd"
 	"encoding/json"
 	"entity"
 	"log"
 	"os"
 )
+type login struct {
+	Username, Password string
+}
+
+const rewritePerm = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+
+func AgendaDir() string {
+	home, present := os.LookupEnv("HOME")
+	if !present {
+		home = "."
+	}
+	return home + "/.agenda/"
+}
+
+func EnsureAgendaDir() {
+	os.Mkdir(AgendaDir(), 0755)
+}
+
+func LoginFile() string {
+	return AgendaDir() + "login"
+}
+
+func UserFile() string {
+	return AgendaDir() + "user"
+}
+
+func MeetingFile() string {
+	return AgendaDir() + "meeting"
+}
+
+func LogFile() string {
+	return AgendaDir() + "log"
+}
 
 func openFileRewrite(path string) (*os.File, error) {
 	return os.OpenFile(path, rewritePerm, 0644)
 }
 
-const rewritePerm = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-
-// LoadUsers from UserFile()
 func LoadUsers() entity.Users {
 	file, e := os.Open(UserFile())
 	if e != nil {
-		log.Printf("No User file; %s\n", e.Error())
+		log.Printf("There is no user file. %s\n", e.Error())
 		return entity.NewUsers()
 	}
 	us, e := entity.DeserializeUser(file)
@@ -26,20 +55,16 @@ func LoadUsers() entity.Users {
 	return us
 }
 
-// LoadMeetings from Meeting
 func LoadMeetings(users entity.Users) *entity.Meetings {
 	file, e := os.Open(MeetingFile())
 	if e != nil {
-		log.Printf("No Meeting file; %s\n", e.Error())
+		log.Printf("There is no meeting file. %s\n", e.Error())
 		return entity.NewMeetings()
 	}
 	ms, e := entity.DeserializeMeeting(file, users)
 	return ms
 }
 
-type login struct {
-	Username, Password string
-}
 
 func loadLoginFile() *login {
 	file, e := os.Open(LoginFile())
@@ -63,65 +88,57 @@ func writeLoginFile(user, pass string) {
 
 func validPassword(u *entity.User, pass string) bool {
 	hash := util.PrettyHash(pass)
-	log.Printf("pass attempt '%s': '%s', to '%s'", pass, hash, u.Password)
+	log.Printf("pass '%s': '%s', to '%s'", pass, hash, u.Password)
 	return hash == u.Password
 }
 
-// LoadLogin file to get current login user
-// returns nil if passwords don't match the hash in users or
-// login file doesn't exist
 func LoadLogin(users entity.Users) (*entity.User, err.Err) {
 	l := loadLoginFile()
 	if l == nil {
-		log.Println("Login file not found, not logged in")
+		log.Println("not found")
 		return nil, err.OK
 	}
 	u := users.Lookup(l.Username)
 	if u == nil {
-		log.Printf("Login user not found: %s\n", l.Username)
+		log.Printf("not found: %s\n", l.Username)
 		return nil, err.NoSuchUser
 	}
 	if !validPassword(u, l.Password) {
-		log.Printf("Login password invalid? %s:%s\n", l.Username, l.Password)
+		log.Printf("invalid")
 		return nil, err.InconsistentState
 	}
-	log.Printf("Login loaded: %s:%s\n", l.Username, l.Password)
+	log.Printf("login loaded: %s:%s\n", l.Username, l.Password)
 	return u, err.OK
 }
 
-// Logout try to delete the login file returns true if success
-// returns false if there's no login file
 func Logout() bool {
 	return os.Remove(LoginFile()) == nil
 }
 
-// Login takes user set and the user and password to login
-// and writes the login state to file if success
 func Login(users entity.Users, user, pass string) err.Err {
 	u := users.Lookup(user)
 	if u == nil {
-		log.Printf("No user named: %s\n", user)
+		log.Printf("There is no user named: %s\n", user)
 		return err.NoSuchUser
 	}
 	if validPassword(u, pass) {
 		writeLoginFile(user, pass)
-		log.Printf("Login success")
+		log.Printf("login success")
 		return err.OK
 	}
-	log.Printf("Invalid password for user: %s\n", user)
+	log.Printf("Invalid password")
 	return err.AuthenticateFail
 }
 
-// StoreUser to UserFile
 func StoreUser(users entity.Users) {
 	file, e := openFileRewrite(UserFile())
 	err.LogFatalIfError(e)
 	users.Serialize(file)
 }
 
-// StoreMeeting to MeetingFile
 func StoreMeeting(meetings *entity.Meetings) {
 	file, e := openFileRewrite(MeetingFile())
 	err.LogFatalIfError(e)
 	meetings.Serialize(file)
 }
+
