@@ -177,6 +177,237 @@ Run 匿名回调函数中添加：
 ---
 
 
+## 测试
+
+> $ go get -u github.com/Tomy-Lee/Agenda-golang
+
+> $GOPATH/bin/agenda -h
+>
+>Agenda is a meeting manager based on CLI using cobra library.
+>It supports different operation on meetings including register, create meeting, query and so on.
+>It's a cooperation homework assignment for service computing.
+>
+>Usage:
+>  Agenda [command]
+>
+>
+```
+Available Commands:
+  cancel              Cancel your own meeting by specifying title name.
+  changeParticipators Change your own meetings' participators.
+  clear               Clear all meetings you attended or created.
+  createMeetings      Create meetings.
+  delete              A brief description of your command
+  help                Help about any command
+  list
+  listMeetingsCmd     List all of your own meetings during a time interval.
+  login               Login
+  logout              Logout
+  quit                Quit meetings.
+  register            Register user.
+```
+
+>Flags:
+  -d, --debug   display log message
+  -h, --help    help for Agenda
+>
+>Use "Agenda [command] --help" for more information about a command.
+
+
+## 测试用例
+
+
+
+#### 1.注册
+
+>./Agenda-golang register -u Tomy -p 060505 -m www.Tomy.com -t 12345678987
+
+#### 2.再次注册已存在账户
+
+
+>there's another user with username Tomy
+
+
+#### 3.登录
+
+
+>./Agenda-golang login -u Tomy -p 060505
+
+#### 4.密码错误
+
+>Authentication Fail
+
+#### 5.未退出再次登录
+
+>Action login requires an logout state
+
+#### 6.创建会议
+
+>./Agenda-golang createMeetings -t Party -p Huixu leegal -s 2017-10-29 -e 2017-10-30
+
+创建后的几种情况输出：
+>meeting hosted
+
+>there's another meeting with title: ABC_Meeting
+
+>there are time conflict of some participants
+
+>meeting should end later than start
+
+>invalid time format: 2018-12-1
+
+
+#### 7.更改参与者
+
+>./Agenda-golang changeParticipators -t Party -p AAA
+
+更改后的几种情况输出：
+
+>user 'AAA' is already a participant of meeting 'Party'
+
+>meeting doesn't exist: PPP
+
+
+#### 8.取消会议
+
+
+
+>./Agenda-golang cancel -t Party
+
+
+会议不存在：
+>meeting doesn't exist: ZZZ
+
+
+
+#### 9.退出会议
+
+>./Agenda-golang quit -t Party
+
+
+不是参与者无法退出会议：
+
+>user 'Li' is not a participant of meeting 'Party'
+
+
+#### 10.列出会议
+列出所有会议：
+>./Agenda-golang list
+
+```
+Username Email Phone
+'Tomy' 'www.Tomy.com' '12345678987'
+'AAA' 'www.AAA.com' '13712345678'
+'BBB' 'www.BBB.com' '13898765432'
+'CCC' 'www.CCC.com' '13978945632'
+```
+根据时间列出会议
+
+>./Agenda-golang listMeetings -s 2015-10-20 -e 2015-12-01
+
+```
+title: TTT
+  host: AAA
+  time: 2017-10-22 to 2015-12-01
+  participants: ZZZ
+```
+列出会议时情况输出
+
+
+>meeting should end later than start
+
+>invalid time format: 2017-10-1
+
+
+#### 11.清除会议
+
+
+>./Agenda-golang clear
+
+#### 12.删除会议
+
+>./agenda delete
+
+
+### 使用cobra
+
+#### 获取帮助和日志记录：
+>-h, --help
+>-d, --debug
+
+#### 注册
+
+```
+Flags:
+  -m, --mail string       email.
+  -p, --password string   Help message for username
+  -t, --phone string      Phone
+  -u, --user string       Username
+```
+
+#### 登录
+
+```
+Flags:
+  -p, --password string   Input password
+  -u, --user string       Input username
+```
+
+#### 创建会议
+
+```
+Flags:
+  -e, --end string             Input end time as the format of (yyyy-mm-dd).
+  -p, --participators string   Input participator name.
+  -s, --start string           Input start time as the format of (yyyy-mm-dd).
+  -t, --title string           Input title name.
+```
+
+---
+
+#### 注：测试情况并未列出所有例子，其余情况类似。
+#### Thanks to VinaLx.
+
+---
+
+Available Commands:
+  cancel              Cancel your own meeting by specifying title name.
+  changeParticipators Change your own meetings' participators.
+  clear               Clear all meetings you attended or created.
+  createMeetings      Create meetings.
+  delete              A brief description of your command
+  help                Help about any command
+  list                
+  listMeetingsCmd     List all of your own meetings during a time interval.
+  login               Login
+  logout              Logout
+  quit                Quit meetings.
+  register            Register user.ou can register an account by using register command, and we define the following requisite argument. All of them are type of string.
+
+Flags:
+  -m, --mail string       email.
+  -p, --password string   Help message for username
+  -t, --phone string      Phone
+  -u, --user string       Username
+Login
+
+You need to login before you use the most of command in Agenda. Once you login, you don't have to login next time, we will keep your state. But you have to log out by yourself in order to protect your privacy.
+
+Flags:
+  -p, --password string   Input password
+  -u, --user string       Input username
+Logout
+
+No argument is needed here. When you have nothing else to do, you had better log out in order to protect your privacy.
+
+delete
+
+We are sorry when you use delete. Once you use this command, all of the information about you will be erased, and there is no way for us and you to get it back. So we recommend you not to use it.
+
+List
+
+---
+
 
 
 
