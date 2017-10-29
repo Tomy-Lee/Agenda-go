@@ -63,3 +63,14 @@ func YMDParse(str string) (time.Time, error) {
 func YMDFormat(t time.Time) string {
 	return t.Format(ymdLayout)
 }
+
+func printError(error string) {
+	fmt.Fprint(os.Stderr, error)
+	os.Exit(1)
+}
+
+func checkEmpty(key, value string) {
+	if value == "" {
+		printError(key + " can't be empty!\n")
+	}
+}
