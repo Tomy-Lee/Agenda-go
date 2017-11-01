@@ -1,6 +1,6 @@
 package main
 
-import  "cmd"
+import  "github.com/Tomy-Lee/Agenda-golang/cmd"
 
 func init() {
 	log.SetFlags(log.Lshortfile)
